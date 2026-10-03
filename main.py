@@ -6,9 +6,11 @@ class DigitalClock:
     def __init__(self, root):
         self.root = root
         self.is_24_hour = True
+        self.is_running = True
+        self.update_job = None
 
         self.root.title("Digital Clock")
-        self.root.geometry("620x280")
+        self.root.geometry("620x330")
         self.root.resizable(False, False)
         self.root.configure(bg="#111827")
 
@@ -44,7 +46,23 @@ class DigitalClock:
             pady=6,
             cursor="hand2",
         )
-        self.format_button.pack(pady=(15, 0))
+        self.format_button.pack(pady=(15, 8))
+
+        self.control_button = tk.Button(
+            root,
+            text="Pause",
+            command=self.toggle_clock,
+            font=("Segoe UI", 11, "bold"),
+            bg="#1f2937",
+            fg="#ffffff",
+            activebackground="#374151",
+            activeforeground="#ffffff",
+            relief="flat",
+            padx=20,
+            pady=6,
+            cursor="hand2",
+        )
+        self.control_button.pack()
 
         self.update_clock()
 
@@ -56,9 +74,22 @@ class DigitalClock:
         else:
             self.format_button.config(text="Switch to 24-hour")
 
-        self.update_clock()
+        self.update_display()
 
-    def update_clock(self):
+    def toggle_clock(self):
+        if self.is_running:
+            self.is_running = False
+            self.control_button.config(text="Resume")
+
+            if self.update_job is not None:
+                self.root.after_cancel(self.update_job)
+                self.update_job = None
+        else:
+            self.is_running = True
+            self.control_button.config(text="Pause")
+            self.update_clock()
+
+    def update_display(self):
         current_time = datetime.now()
 
         if self.is_24_hour:
@@ -74,7 +105,12 @@ class DigitalClock:
             text=current_time.strftime("%A, %d %B %Y")
         )
 
-        self.root.after(1000, self.update_clock)
+    def update_clock(self):
+        if not self.is_running:
+            return
+
+        self.update_display()
+        self.update_job = self.root.after(1000, self.update_clock)
 
 
 def main():
@@ -85,4 +121,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    
